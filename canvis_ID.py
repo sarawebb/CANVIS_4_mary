@@ -191,9 +191,6 @@ with open(translist_path) as f:
             plt.colorbar()
             plt.savefig(path_cutout+'.png', overwite=True)
             plt.close()
-	
-	
-	
     
     print('Hello')
     files = []	
