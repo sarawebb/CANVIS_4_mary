@@ -1,6 +1,6 @@
 """location_canvis.py -- Input an RA and DEC cut out postage stamps around associated RA and DEC for all available data for given field; Input also the DWF_run, which specifies where CANVIS outputs will be saved. 
 
-Usage: location_canvis [-h] [-v] [--debug] <RA> <DEC> <field> <seed> <DWF_run>
+Usage: location_canvis [-h] [-v] [--debug] <RA> <DEC> <field> <DWF_run>
 
 Arguments:
     RA (float)
@@ -9,8 +9,6 @@ Arguments:
         The DEC in degrees.
     field (string)
         The DWF field name. 
-    seed (string)
-        The seed tells you the spectic mary type of run you would like to query the data of, for example 'rt' is for realtime and 'NOAO' is for slow processed
     DWF_run (string)
         The DWF run date/ name. This specifies the folder under which gifs are saved at: /fred/oz100/CANVIS/cand_images/DWF_run
 
@@ -20,8 +18,9 @@ Options:
     --debug                                 Output more for debugging [default: False]
 
 Example:
-    python location_canvis.py -v 124.0000000 -78.7500000 8hr rt_TEST3 SARATEST
- """
+    python location_canvis.py -v 121.0000000 -78.2600000 8hr zhangtesttest
+    python location_canvis.py -v 125.0000000 -78.2600000 8hr zhangtesttest
+"""
 
 import docopt
 import numpy as np
@@ -49,7 +48,6 @@ from PyAstronomy import pyasl
 
 #IDs = np.arange(1,5)
 #field = '8hr'
-#seed ='rt_TEST3'
 #run ='SARATEST'
 
 
@@ -115,7 +113,7 @@ def DEsex_to_DEdec(fDEsex):
     return fDEdec
 
 
-def location_canvis(RA, DEC, field,seed,run,verbose=False,debugmode=False):
+def location_canvis(RA, DEC, field,run,verbose=False,debugmode=False):
     print('\n#########################')
     print('#  CANVIS HAS STARTED   #')
     print('#########################\n')
@@ -216,7 +214,6 @@ if __name__ == "__main__":
     RA = arguments['<RA>']
     DEC = arguments['<DEC>']
     field = arguments['<field>']
-    seed  = arguments['<seed>']
     run   = arguments['<DWF_run>']
     print(arguments)
     # Optional arguments
@@ -226,4 +223,4 @@ if __name__ == "__main__":
     if debugmode:
         print(arguments)
 
-    location_canvis(RA,DEC,field, seed,run,verbose=verbose,debugmode=debugmode)
+    location_canvis(RA,DEC,field,run,verbose=verbose,debugmode=debugmode)
