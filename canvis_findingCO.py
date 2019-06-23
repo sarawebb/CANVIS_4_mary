@@ -140,7 +140,7 @@ def create_finding_chart_inputs(RA, DEC,source_name, field, template, verbose=Fa
 
     with fits.open(temp_path) as hdu:
         print('## Template opened ##')
-        size = 600
+        size = 1370
         w = WCS(hdu[0].header)
         #print(w)
         head = hdu[0].header
@@ -161,14 +161,34 @@ def create_finding_chart_inputs(RA, DEC,source_name, field, template, verbose=Fa
         hdu[0].header['CRPIX1'] = cutout.wcs.wcs.crpix[0]
         hdu[0].header['CRPIX2'] = cutout.wcs.wcs.crpix[1]
         hdu.writeto(output_files_path + source_name+'.fits', overwrite = True)
-        print('## Fits CUTOUT saved ##')
-        plt.axis('off')
-        plt.imshow(hdu[0].data, cmap='gray', vmin= -1, vmax =10)
-        plt.savefig(output_files_path + source_name+'.png', overwite=True)
-        plt.close()
-    print('## Starting Source Extracting  ##')
+        print('## Large Fits CUTOUT saved ##')
+        small_size = 457
+    with fits.open(temp_path) as hdu:
+        size = 457
+        w = WCS(hdu[0].header)
+        #print(w)
+        head = hdu[0].header
+        date = dt.datetime.strptime(head['DATE'], '%Y-%m-%dT%H:%M:%S')
+        xlim=head['NAXIS1']
+        ylim=head['NAXIS2']
+        print(xlim, ylim)
+        pixcrd_im = np.array([[xlim, ylim]], np.float_)
+        world_im = w.wcs_pix2world(pixcrd_im, 1)
+        pixx_im, pixy_im = world_im[0][0], world_im[0][1]
 
-    os.system('sex ' + output_files_path + source_name+'.fits' +' -c default_params.sex -CATALOG_NAME ' + output_files_path + source_name + '_SE.cat -DETECT_THRESH 1.5  -MAG_ZEROPOINT 25 ')
+        pixcrd = np.array([[RA, DEC]], np.float_)
+        worldpix = w.wcs_world2pix(pixcrd, 1)
+        pixx, pixy = worldpix[0][0], worldpix[0][1]
+        cutout = Cutout2D(hdu[0].data, (pixx, pixy), size, wcs= w)
+        hdu[0].data = cutout.data
+        hdu[0].header['CRPIX1'] = cutout.wcs.wcs.crpix[0]
+        hdu[0].header['CRPIX2'] = cutout.wcs.wcs.crpix[1]
+        hdu.writeto(output_files_path + source_name+'SMALL.fits', overwrite = True)
+        print('## Small Fits CUTOUT saved ##')
+
+    print('## Starting Source Extracting for SMALL image ##')
+
+    os.system('sex ' + output_files_path + source_name+'SMALL.fits' +' -c default_params.sex -CATALOG_NAME ' + output_files_path + source_name + '_SE.cat -DETECT_THRESH 1.5  -MAG_ZEROPOINT 25 ')
     print('## Source extractor done! ##')
     print('#############################################')
     print('## Cross matching with SkyMapper DR2 ##')
@@ -247,13 +267,14 @@ def create_finding_chart_inputs(RA, DEC,source_name, field, template, verbose=Fa
             SM_filtered_z_psf_err.append(row['e_z_psf'])
 
     
-    SM_X = np.empty((len(SM_filtered_ra), 6), dtype=np.float64)
+    SM_X = np.empty((len(SM_filtered_ra), 7), dtype=np.float64)
     SM_X[:, 0] = SM_filtered_ra
     SM_X[:, 1] = SM_filtered_dec
     SM_X[:, 2] = SM_filtered_ngood
     SM_X[:, 3] = SM_filtered_g_psf
     SM_X[:, 4] = SM_filtered_r_psf
     SM_X[:, 5] = SM_filtered_i_psf
+    SM_X[:, 6] = SM_filtered_z_psf
     
     MAG_APER, MAGERR_APER, MAG_AUTO, MAGERR_AUTO, XPEAK_IMAGE, YPEAK_IMAGE, X_IMAGE, Y_IMAGE, ALPHA_J2000, DELTA_J2000 = np.loadtxt(output_files_path + source_name + '_SE.cat', unpack = True)
     DWF_X = np.empty((len(MAG_APER), 2), dtype=np.float64)
@@ -289,10 +310,10 @@ def create_finding_chart_inputs(RA, DEC,source_name, field, template, verbose=Fa
 
             RA = SM_X[j, 0]
             DEC = SM_X[j, 1]
-            g_mag = SM_X[j, 2]
-            r_mag = SM_X[j, 3]
-            i_mag = SM_X[j, 4]
-            z_mag = SM_X[j, 5]
+            g_mag = SM_X[j, 3]
+            r_mag = SM_X[j, 4]
+            i_mag = SM_X[j, 5]
+            z_mag = SM_X[j, 6]
             SM_RA.append(RA)
             SM_DEC.append(DEC)
 
@@ -308,13 +329,15 @@ def create_finding_chart_inputs(RA, DEC,source_name, field, template, verbose=Fa
         SM_final_table['r_mag'] = SM_r_mag
         SM_final_table['i_mag'] = SM_i_mag
         SM_final_table['z_mag'] = SM_z_mag
-        
+
         output= output_files_path + source_name + '_skymapper_star_cat.ascii'
         SM_final_table.write(output, format='ascii', overwrite=True)
         print('#############################################')
         print('# YOUR FINDING CHART INPUTS ARE DONE#')
         print(f'# FIND THEM HERE: {output_files_path}')
         print('#############################################')
+
+
 if __name__ == "__main__":
     ## read in arguments 
     arguments = docopt.docopt(__doc__, options_first=True)

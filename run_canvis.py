@@ -1,14 +1,12 @@
 """run_canvis.py -- Input a field, Mary ID and seed ID, cut out postage stamps around associated RA and DEC for all available data for given field and CCD; Input also the DWF_run, which specifies where CANVIS outputs will be saved. 
 
-Usage: run_canvis [-h] [-v] [--debug] <field> <ID> <seed> <DWF_run>
+Usage: run_canvis [-h] [-v] [--debug] <field> <ID> <DWF_run>
 
 Arguments:
     field (string)
         The DWF field name. 
     ID (integer)
         Mary ID of the object you want to use CANVIS on. Given a field, Mary IDs are unique.
-    seed (string)
-        The seed tells you PLEASEEDITSARA.
     DWF_run (string)
         The DWF run date/ name. This specifies the folder under which gifs are saved at: /fred/oz100/CANVIS/cand_images/DWF_run
 
@@ -18,8 +16,8 @@ Options:
     --debug                                 Output more for debugging [default: False]
 
 Example:
-    python ~/jlzhang/DWF_runaids/run_canvis.py -v 8hr 2 rt_TEST3 DWF_foo
-    python run_canvis.py -v 8hr 2 rt_TEST3 DWF_foo
+    python ~/jlzhang/DWF_runaids/run_canvis.py -v 8hr 2 DWF_foo
+    python run_canvis.py -v 8hr 2 DWF_foo
  """
 
 import docopt
@@ -48,7 +46,6 @@ from PyAstronomy import pyasl
 
 #ID = 2
 #field = '8hr'
-#seed ='rt_TEST3'
 #run ='jlzhangtest'
 
 
@@ -114,12 +111,12 @@ def DEsex_to_DEdec(fDEsex):
     return fDEdec
 
 
-def run_canvis(field,ID,seed,run,verbose=False,debugmode=False):
+def run_canvis(field,ID,run,verbose=False,debugmode=False):
     print('\n#########################')
     print('#  CANVIS HAS STARTED   #')
     print('#########################\n')
 
-    translist_path = '/home/fstars/MARY4OZ/transients/transients_coo_'+field+'_'+seed+'.txt'
+    translist_path = '/home/fstars/MARY4OZ/transients/transients_coo.txt'
     print('CANVIS will make a gif for field %s Mary ID number %s.\n' % (field,ID) )
     print('CANVIS will do this by reading %s\n' %translist_path)
 
@@ -223,7 +220,6 @@ if __name__ == "__main__":
     field = arguments['<field>']
     ID    = arguments['<ID>']
     ID    = int(ID)
-    seed  = arguments['<seed>']
     run   = arguments['<DWF_run>']
 
     # Optional arguments
@@ -233,4 +229,4 @@ if __name__ == "__main__":
     if debugmode:
         print(arguments)
 
-    run_canvis(field,ID,seed,run,verbose=verbose,debugmode=debugmode)
+    run_canvis(field,ID,run,verbose=verbose,debugmode=debugmode)
