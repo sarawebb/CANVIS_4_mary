@@ -193,6 +193,7 @@ def location_canvis(RA, DEC, field,run,verbose=False,debugmode=False):
             if cutouts.endswith('.png'):
                 files.append(path_cutout + cutouts)
         writer = imageio.get_writer(str(path_cutout)  + '_VIDEO.gif', fps =3)
+        video_loc = str(path_cutout)  + '_VIDEO.gif'
         for i in files:
             writer.append_data(imageio.imread(i))
         writer.close()
@@ -207,7 +208,7 @@ def location_canvis(RA, DEC, field,run,verbose=False,debugmode=False):
     print('#  Enjoy and discover!    #')
     print('###########################\n')
 
-    return None
+    return video_loc
 
 
 if __name__ == "__main__":
