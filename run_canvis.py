@@ -19,6 +19,7 @@ Options:
 
 Example:
     python ~/jlzhang/DWF_runaids/run_canvis.py -v 8hr 2 rt_TEST3 DWF_foo
+    python run_canvis.py -v 8hr 2 rt_TEST3 DWF_foo
  """
 
 import docopt
