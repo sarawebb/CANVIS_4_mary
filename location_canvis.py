@@ -157,6 +157,11 @@ def location_canvis(RA, DEC, field,run,verbose=False,debugmode=False):
     images_found=False
     for i, (key, (path, pixx, pixy)) in enumerate(mydic.items()):
         images_found=True
+        if debugmode == True:
+            print('variable run is: {} and the type is: {}'.format(run,type(run)))
+            print('variable RA is: {} and the type is: {}'.format(RA,type(RA)))
+            print('variable DEC is: {} and the type is: {}'.format(DEC,type(DEC)))
+            print('variable field is: {} and the type is: {}'.format(field,type(field)))
         path_cand = '/fred/oz100/canvis/cand_images/'+ run + '/cand_'+RA+DEC+'_'+ field +'_'+ run +'/'
         path_cutout = '/fred/oz100/CANVIS/cand_images/'+ run +'/cand_'+RA+DEC+'_'+ field +'_'+ run +'/'+RA+DEC+'_'+run+'_cutout_'+format(i, '03')  
         if not os.path.exists(path_cand):
