@@ -156,7 +156,9 @@ def location_canvis(RA, DEC, field,seed,run,verbose=False,debugmode=False):
                 if debugmode:
                     print(mydic)
 
+    images_found=False
     for i, (key, (path, pixx, pixy)) in enumerate(mydic.items()):
+        images_found=True
         path_cand = '/fred/oz100/canvis/cand_images/'+ run + '/cand_'+RA+DEC+'_'+ field +'_'+ run +'/'
         path_cutout = '/fred/oz100/CANVIS/cand_images/'+ run +'/cand_'+RA+DEC+'_'+ field +'_'+ run +'/'+RA+DEC+'_'+run+'_cutout_'+format(i, '03')  
         if not os.path.exists(path_cand):
@@ -181,17 +183,21 @@ def location_canvis(RA, DEC, field,seed,run,verbose=False,debugmode=False):
             plt.savefig(path_cutout+'.png', overwite=True)
             plt.close()
 
-    files = []	
-    path_cutout = '/fred/oz100/CANVIS/cand_images/'+ run +'/cand_'+RA+DEC+'_'+ field +'_'+ run +'/'
-    for cutouts in os.listdir(path_cutout):
-        if cutouts.endswith('.png'):
-            files.append(path_cutout + cutouts)
-    writer = imageio.get_writer(str(path_cutout)  + '_VIDEO.gif', fps =3)
-    for i in files:
-        writer.append_data(imageio.imread(i))
-    writer.close()
+    if images_found:
+        files = []	
+        path_cutout = '/fred/oz100/CANVIS/cand_images/'+ run +'/cand_'+RA+DEC+'_'+ field +'_'+ run +'/'
+        for cutouts in os.listdir(path_cutout):
+            if cutouts.endswith('.png'):
+                files.append(path_cutout + cutouts)
+        writer = imageio.get_writer(str(path_cutout)  + '_VIDEO.gif', fps =3)
+        for i in files:
+            writer.append_data(imageio.imread(i))
+        writer.close()
+    else:
+        print('\nCANVIS did not find any images to create a gif with, sorry!\n')
 
-    print('\nDone! Look for your outputs here: /fred/oz100/CANVIS/cand_images/%s' % run)
+    if images_found:
+        print('\nDone! Look for your outputs here: /fred/oz100/CANVIS/cand_images/%s' % run)
 
     print('\n###########################')
     print('#  CANVIS HAS Finished    #')
