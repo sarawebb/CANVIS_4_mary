@@ -1,6 +1,6 @@
 """location_canvis.py -- Input an RA and DEC cut out postage stamps around associated RA and DEC for all available data for given field; Input also the DWF_run, which specifies where CANVIS outputs will be saved. 
 
-Usage: location_canvis [-h] [-v] [--debug] <RA> <DEC> <field> <DWF_run>
+Usage: location_canvis [-h] [-v] [--debug] <RA> <DEC> <field> <date> <DWF_run>
 
 Arguments:
     RA (float)
@@ -9,6 +9,8 @@ Arguments:
         The DEC in degrees.
     field (string)
         The DWF field name. 
+    date (string)
+        the date of the images you want or * for all.
     DWF_run (string)
         The DWF run date/ name. This specifies the folder under which gifs are saved at: /fred/oz100/CANVIS/cand_images/DWF_run
 
@@ -18,8 +20,8 @@ Options:
     --debug                                 Output more for debugging [default: False]
 
 Example:
-    python location_canvis.py -v 121.0000000 -78.2600000 8hr zhangtesttest
-    python location_canvis.py -v 125.0000000 -78.2600000 8hr zhangtesttest
+    python location_canvis.py -v 121.0000000 -78.2600000 8hr * zhangtesttest
+    python location_canvis.py -v 125.0000000 -78.2600000 8hr 190626 zhangtesttest
 """
 
 import docopt
@@ -113,7 +115,7 @@ def DEsex_to_DEdec(fDEsex):
     return fDEdec
 
 
-def location_canvis(RA, DEC, field,run,verbose=False,debugmode=False):
+def location_canvis(RA, DEC, field,date, run,verbose=False,debugmode=False):
     print('\n#########################')
     print('#  CANVIS HAS STARTED   #')
     print('#########################\n')
@@ -122,7 +124,7 @@ def location_canvis(RA, DEC, field,run,verbose=False,debugmode=False):
     '''RA, DEC, CANVIS will go through all the data on this field  
     and extract postage stamps around the given RA and DEC.'''
     print("CANVIS will extract postage stamps around RA %s DEC %s for field %s." %(RA, DEC,field))
-    path ='/fred/oz100/pipes/DWF_PIPE/MARY_WORK/'+field+'_*_*_*/*/images_resampled/sci_*.resamp.fits'
+    path ='/fred/oz100/pipes/DWF_PIPE/MARY_WORK/'+field+'_'+date+'_*_*/*/images_resampled/sci_*.resamp.fits'
     fitsfileslist = glob.glob(path)
     mydic = SortedDict()
     for i  in fitsfileslist:
@@ -220,7 +222,10 @@ if __name__ == "__main__":
     RA = arguments['<RA>']
     DEC = arguments['<DEC>']
     field = arguments['<field>']
+    date = arguments['<date>']
     run   = arguments['<DWF_run>']
+    
+
     print(arguments)
     # Optional arguments
     verbose = arguments['--verbose']
@@ -229,4 +234,4 @@ if __name__ == "__main__":
     if debugmode:
         print(arguments)
 
-    location_canvis(RA,DEC,field,run,verbose=verbose,debugmode=debugmode)
+    location_canvis(RA,DEC,field,date, run,verbose=verbose,debugmode=debugmode)

@@ -49,6 +49,8 @@ from astropy import units as u
 from PyAstronomy import pyasl
 from argparse import ArgumentParser
 from astroML.crossmatch import crossmatch_angular 
+from astroquery.vizier import Vizier
+from astropy.coordinates import Angle
 ########################## Manual Input ################################## 
 
 
@@ -125,7 +127,7 @@ def create_finding_chart_inputs(RA, DEC,source_name, field, template, verbose=Fa
     print('#############################################')
     print(f'Finding chart image for RA: {RA} DEC: {DEC}')
 
-    temp_path ='/fred/oz100/pipes/DWF_PIPE/TEMPLATES/' + field +'/'+ template
+    temp_path ='/fred/oz100/pipes/DWF_PIPE/field_stacks/'+ template
     print(f'Template path being used is: {temp_path}')
     output_path = '/fred/oz100/FINDING_CHARTS/'
     output_files_path = '/fred/oz100/FINDING_CHARTS/'+field+'/'+source_name +'/'
@@ -193,149 +195,183 @@ def create_finding_chart_inputs(RA, DEC,source_name, field, template, verbose=Fa
     print('#############################################')
     print('## Cross matching with SkyMapper DR2 ##')
     print('#############################################')
-    skymapper_cat_path = '/fred/oz100/SM_cats/'+field+'_SM.csv'
-    sm_cat = pd.read_csv(skymapper_cat_path).to_dict(orient='row')
-    sm_ra = []
-    sm_dec = []
-    sm_ngood = []
-    sm_class_star = []
-    sm_g_psf = []
-    sm_g_psf_error =[]
-    sm_r_psf = []
-    sm_r_psf_error = []
-    sm_i_psf = []
-    sm_i_psf_error = []
-    sm_z_psf = []
-    sm_z_psf_error = []
+    
+    try: 
+        skymapper_cat_path = '/fred/oz100/SM_cats/'+field+'_SM.csv'
+        sm_cat = pd.read_csv(skymapper_cat_path).to_dict(orient='row')
+        sm_ra = []
+        sm_dec = []
+        sm_ngood = []
+        sm_class_star = []
+        sm_g_psf = []
+        sm_g_psf_error =[]
+        sm_r_psf = []
+        sm_r_psf_error = []
+        sm_i_psf = []
+        sm_i_psf_error = []
+        sm_z_psf = []
+        sm_z_psf_error = []
+        if debugmode: 
+            print('Numebr of sources in SkyMapper Catalouge: '+ str(len(sm_cat)))
 
-    for i in range(len(sm_cat)):
-        sm_ra.append(sm_cat[i]['raj2000'])
-        sm_dec.append(sm_cat[i]['dej2000'])
-        sm_ngood.append(sm_cat[i]['ngood'])
-        sm_class_star.append(sm_cat[i]['class_star'])
-        sm_g_psf.append(sm_cat[i]['g_psf'])
-        sm_g_psf_error.append(sm_cat[i]['e_g_psf'])
-        sm_r_psf.append(sm_cat[i]['r_psf'])
-        sm_r_psf_error.append(sm_cat[i]['e_r_psf'])
-        sm_i_psf.append(sm_cat[i]['i_psf'])
-        sm_i_psf_error.append(sm_cat[i]['e_i_psf'])
-        sm_z_psf.append(sm_cat[i]['z_psf'])
-        sm_z_psf_error.append(sm_cat[i]['e_z_psf'])
+        for i in range(len(sm_cat)):
+            sm_ra.append(sm_cat[i]['raj2000'])
+            sm_dec.append(sm_cat[i]['dej2000'])
+            sm_ngood.append(sm_cat[i]['ngood'])
+            sm_class_star.append(sm_cat[i]['class_star'])
+            sm_g_psf.append(sm_cat[i]['g_psf'])
+            sm_g_psf_error.append(sm_cat[i]['e_g_psf'])
+            sm_r_psf.append(sm_cat[i]['r_psf'])
+            sm_r_psf_error.append(sm_cat[i]['e_r_psf'])
+            sm_i_psf.append(sm_cat[i]['i_psf'])
+            sm_i_psf_error.append(sm_cat[i]['e_i_psf'])
+            sm_z_psf.append(sm_cat[i]['z_psf'])
+            sm_z_psf_error.append(sm_cat[i]['e_z_psf'])
+            
+        SM_table = Table()
+        SM_table['RA'] = sm_ra 
+        SM_table['DEC'] = sm_dec
+        SM_table['ngood'] = sm_ngood
+        SM_table['class_star'] = sm_class_star
+        SM_table['g_psf'] = sm_g_psf
+        SM_table['e_g_psf'] = sm_g_psf_error
+        SM_table['r_psf'] = sm_r_psf
+        SM_table['e_r_psf'] = sm_r_psf_error
+        SM_table['i_psf'] = sm_i_psf
+        SM_table['e_i_psf'] = sm_i_psf_error
+        SM_table['z_psf'] = sm_z_psf
+        SM_table['e_z_psf'] =sm_z_psf_error
+        SM_filtered_ra = []
+        SM_filtered_dec = []
+        SM_filtered_ngood = []
+        SM_filtered_class_star = []
+        SM_filtered_g_psf = []
+        SM_filtered_g_psf_err = []
+        SM_filtered_r_psf = []
+
+
+
+        SM_filtered_r_psf_err = []
+        SM_filtered_i_psf = []
+        SM_filtered_i_psf_err = []
+        SM_filtered_z_psf = []
+        SM_filtered_z_psf_err = []
+                                                                                                                                                            
+        for row in SM_table:
+            if 0.90 <= row['class_star'] <= 1.0:
+                SM_filtered_ra.append(row['RA'])
+                SM_filtered_dec.append(row['DEC'])
+                SM_filtered_ngood.append(row['ngood'])
+                SM_filtered_class_star.append(row['class_star'])
+                SM_filtered_g_psf.append(row['g_psf'])
+                SM_filtered_g_psf_err.append(row['e_g_psf'])
+                SM_filtered_r_psf.append(row['r_psf'])
+                SM_filtered_r_psf_err.append(row['e_r_psf'])
+                SM_filtered_i_psf.append(row['i_psf'])
+                SM_filtered_i_psf_err.append(row['e_i_psf'])
+                SM_filtered_z_psf.append(row['z_psf'])
+                SM_filtered_z_psf_err.append(row['e_z_psf'])
+            if debugmode:
+                print('Number of SkyMapper Sources pass S/G cuts: '+ str(len(SM_filtered_ra))) 
+
         
-    SM_table = Table()
-    SM_table['RA'] = sm_ra 
-    SM_table['DEC'] = sm_dec
-    SM_table['ngood'] = sm_ngood
-    SM_table['class_star'] = sm_class_star
-    SM_table['g_psf'] = sm_g_psf
-    SM_table['e_g_psf'] = sm_g_psf_error
-    SM_table['r_psf'] = sm_r_psf
-    SM_table['e_r_psf'] = sm_r_psf_error
-    SM_table['i_psf'] = sm_i_psf
-    SM_table['e_i_psf'] = sm_i_psf_error
-    SM_table['z_psf'] = sm_z_psf
-    SM_table['e_z_psf'] =sm_z_psf_error
-    SM_filtered_ra = []
-    SM_filtered_dec = []
-    SM_filtered_ngood = []
-    SM_filtered_class_star = []
-    SM_filtered_g_psf = []
-    SM_filtered_g_psf_err = []
-    SM_filtered_r_psf = []
+        SM_X = np.empty((len(SM_filtered_ra), 7), dtype=np.float64)
+        SM_X[:, 0] = SM_filtered_ra
+        SM_X[:, 1] = SM_filtered_dec
+        SM_X[:, 2] = SM_filtered_ngood
+        SM_X[:, 3] = SM_filtered_g_psf
+        SM_X[:, 4] = SM_filtered_r_psf
+        SM_X[:, 5] = SM_filtered_i_psf
+        SM_X[:, 6] = SM_filtered_z_psf
+        
+        MAG_APER, MAGERR_APER, MAG_AUTO, MAGERR_AUTO, XPEAK_IMAGE, YPEAK_IMAGE, X_IMAGE, Y_IMAGE, ALPHA_J2000, DELTA_J2000 = np.loadtxt(output_files_path + source_name + '_SE.cat', unpack = True)
+        DWF_X = np.empty((len(MAG_APER), 2), dtype=np.float64)
+        DWF_X[:, 0] = ALPHA_J2000
+        DWF_X[:, 1] = DELTA_J2000
 
+        max_radius = 2/3600 #1 arc second
+        dist_between, ind_row = crossmatch_angular(DWF_X, SM_X, max_radius)
+        match = ~np.isinf(dist_between)
+        if debugmode: 
+            print('Length of Match Table: ' + str(len(match)))
+            print(match)
+        if len(match) != 0: 
+            match_table = Table()
+            match_table['matched_true_false'] = match
+            match_table['matched_ID'] = ind_row
+         
+            SM_match_true = []
+            SM_row_matched = []
+            DWF_g_mags_matched = []
+            DWF_g_mags_error_matched = []
+            DWF_obs_ra_matched = []
+            DWF_obs_dec_matched = []
+            for row in match_table:
+                if row['matched_true_false'] == True:
+                    if debugmode:
+                        print('Found match source: ' + str(row['matched_ID']))
+                    SM_match_true.append(row['matched_true_false'])
+                    SM_row_matched.append(row['matched_ID'])
+            SM_RA = []
+            SM_DEC = []
+            SM_g_mag = []
+            SM_r_mag = []
+            SM_i_mag = []
+            SM_z_mag = []
+            
+            for j in SM_row_matched:
 
+                RA = SM_X[j, 0]
+                DEC = SM_X[j, 1]
+                g_mag = SM_X[j, 3]
+                r_mag = SM_X[j, 4]
+                i_mag = SM_X[j, 5]
+                z_mag = SM_X[j, 6]
+                SM_RA.append(RA)
+                SM_DEC.append(DEC)
 
-    SM_filtered_r_psf_err = []
-    SM_filtered_i_psf = []
-    SM_filtered_i_psf_err = []
-    SM_filtered_z_psf = []
-    SM_filtered_z_psf_err = []
-                                                                                                                                                        
-    for row in SM_table:
-        if 0.95 <= row['class_star'] <= 1.0:
-            SM_filtered_ra.append(row['RA'])
-            SM_filtered_dec.append(row['DEC'])
-            SM_filtered_ngood.append(row['ngood'])
-            SM_filtered_class_star.append(row['class_star'])
-            SM_filtered_g_psf.append(row['g_psf'])
-            SM_filtered_g_psf_err.append(row['e_g_psf'])
-            SM_filtered_r_psf.append(row['r_psf'])
-            SM_filtered_r_psf_err.append(row['e_r_psf'])
-            SM_filtered_i_psf.append(row['i_psf'])
-            SM_filtered_i_psf_err.append(row['e_i_psf'])
-            SM_filtered_z_psf.append(row['z_psf'])
-            SM_filtered_z_psf_err.append(row['e_z_psf'])
+                SM_g_mag.append(g_mag)
+                SM_r_mag.append(r_mag)
+                SM_i_mag.append(i_mag)
+                SM_z_mag.append(z_mag)
+            
+            SM_final_table = Table()
+            SM_final_table['RA'] = SM_RA 
+            SM_final_table['DEC'] = SM_DEC
+            SM_final_table['g_mag'] = SM_g_mag
+            SM_final_table['r_mag'] = SM_r_mag
+            SM_final_table['i_mag'] = SM_i_mag
+            SM_final_table['z_mag'] = SM_z_mag
+            output= output_files_path + source_name + '_skymapper_star_cat.ascii'
+            SM_final_table.write(output, format='ascii', overwrite=True)
+            print('#############################################')
+            print('SkyMapper Sources Found and Saved')
+            print('#############################################')
+    except: 
+        print('SKY MAPPER SOURCE CHECK FAILED')
+        print('#############################################')
 
-    
-    SM_X = np.empty((len(SM_filtered_ra), 7), dtype=np.float64)
-    SM_X[:, 0] = SM_filtered_ra
-    SM_X[:, 1] = SM_filtered_dec
-    SM_X[:, 2] = SM_filtered_ngood
-    SM_X[:, 3] = SM_filtered_g_psf
-    SM_X[:, 4] = SM_filtered_r_psf
-    SM_X[:, 5] = SM_filtered_i_psf
-    SM_X[:, 6] = SM_filtered_z_psf
-    
-    MAG_APER, MAGERR_APER, MAG_AUTO, MAGERR_AUTO, XPEAK_IMAGE, YPEAK_IMAGE, X_IMAGE, Y_IMAGE, ALPHA_J2000, DELTA_J2000 = np.loadtxt(output_files_path + source_name + '_SE.cat', unpack = True)
-    DWF_X = np.empty((len(MAG_APER), 2), dtype=np.float64)
-    DWF_X[:, 0] = ALPHA_J2000
-    DWF_X[:, 1] = DELTA_J2000
+        print('Starting to search for GAIA sources')
+        GAIA_DR2 = "I/345"
+        field_RA_DEC = str(f'{RA} {DEC}')
 
-    max_radius = 1/3600 #1 arc second
-    dist_between, ind_row = crossmatch_angular(DWF_X, SM_X, max_radius)
-    match = ~np.isinf(dist_between)
-    
-    if len(match) != 0: 
-        match_table = Table()
-        match_table['matched_true_false'] = match
-        match_table['matched_ID'] = ind_row
-     
-        SM_match_true = []
-        SM_row_matched = []
-        DWF_g_mags_matched = []
-        DWF_g_mags_error_matched = []
-        DWF_obs_ra_matched = []
-        DWF_obs_dec_matched = []
-        for row in match_table:
-            if row['matched_true_false'] == True:
-                SM_match_true.append(row['matched_true_false'])
-                SM_row_matched.append(row['matched_ID'])
-        SM_RA = []
-        SM_DEC = []
-        SM_g_mag = []
-        SM_r_mag = []
-        SM_i_mag = []
-        SM_z_mag = []
-        for j in SM_row_matched:
+        result = Vizier.query_region(field_RA_DEC, radius=Angle('120"'), catalog=GAIA_DR2)
+        print(field_RA_DEC)
+        GAIA_DR2 = Table()
+        GAIA_DR2['RA'] = result[0]['RA_ICRS']
+        GAIA_DR2['DEC'] = result[0]['DE_ICRS']
+        GAIA_DR2['Gmag'] = result[0]['Gmag']
+        GAIA_DR2['BPmag'] = result[0]['BPmag']
+        GAIA_DR2['RPmag'] = result[0]['RPmag']
+        output= output_files_path + source_name + '_gaia_star_cat.ascii'
+        GAIA_DR2.write(output, format='ascii', overwrite=True)
 
-            RA = SM_X[j, 0]
-            DEC = SM_X[j, 1]
-            g_mag = SM_X[j, 3]
-            r_mag = SM_X[j, 4]
-            i_mag = SM_X[j, 5]
-            z_mag = SM_X[j, 6]
-            SM_RA.append(RA)
-            SM_DEC.append(DEC)
-
-            SM_g_mag.append(g_mag)
-            SM_r_mag.append(r_mag)
-            SM_i_mag.append(i_mag)
-            SM_z_mag.append(z_mag)
-
-        SM_final_table = Table()
-        SM_final_table['RA'] = SM_RA 
-        SM_final_table['DEC'] = SM_DEC
-        SM_final_table['g_mag'] = SM_g_mag
-        SM_final_table['r_mag'] = SM_r_mag
-        SM_final_table['i_mag'] = SM_i_mag
-        SM_final_table['z_mag'] = SM_z_mag
-
-        output= output_files_path + source_name + '_skymapper_star_cat.ascii'
-        SM_final_table.write(output, format='ascii', overwrite=True)
         print('#############################################')
         print('# YOUR FINDING CHART INPUTS ARE DONE#')
         print(f'# FIND THEM HERE: {output_files_path}')
         print('#############################################')
+
+
 
 
 if __name__ == "__main__":

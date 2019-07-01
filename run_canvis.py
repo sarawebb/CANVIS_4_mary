@@ -128,7 +128,8 @@ def run_canvis(field,ID,run,verbose=False,debugmode=False):
             if int(line[0]) == ID:
                 ra = str(line[1])
                 dec = str(line[2])
-                #field = str(line[3])           
+                #field = str(line[3])
+                date = str(line[4])
                 ccd_num = str(line[6])   
 
     if debugmode:
@@ -137,12 +138,13 @@ def run_canvis(field,ID,run,verbose=False,debugmode=False):
     '''Given the CCD number, RA, DEC, go through all the data on this field with this CCD 
     and extract postage stamps around the given RA and DEC.'''
     print("CANVIS will extract postage stamps around RA %s DEC %s for field %s on CCD %s for all seed IDs and dates." %(ra, dec,field,ccd_num))
-    path ='/fred/oz100/pipes/DWF_PIPE/MARY_WORK/'+field+'_*_*_*/ccd' + ccd_num+'/images_resampled/sci_' + ccd_num+'.resamp.fits'
+    path ='/fred/oz100/pipes/DWF_PIPE/MARY_WORK/'+field+'_'+ date +'_mlt1_*/ccd' + ccd_num+'/images_resampled/sci_' + ccd_num+'.resamp.fits'
     fitsfileslist = glob.glob(path)
     mydic = SortedDict()
     for i  in fitsfileslist:
         with fits.open(i) as hdu:
-            size = 200 
+            
+            size = 200
             w = WCS(hdu[0].header)
             head = hdu[0].header
             date = dt.datetime.strptime(head['DATE'], '%Y-%m-%dT%H:%M:%S')
@@ -164,6 +166,8 @@ def run_canvis(field,ID,run,verbose=False,debugmode=False):
             pixx, pixy = worldpix[0][0], worldpix[0][1]
 
             if float( corner_4[0]) <= float(ra) <=float(corner_1[0]) and float(corner_2[1]) >= float(dec) >= float(corner_1[1]):
+                if debugmode:
+                    print('in if')
                 path = i
                 mydic[date] =[path, pixx, pixy]
                 if debugmode:
